@@ -2,3 +2,5 @@ pip
 fastapi
 pydantic
 uvicorn
+sqlalchemy
+dotenv
