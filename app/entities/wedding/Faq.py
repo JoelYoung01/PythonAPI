@@ -19,8 +19,8 @@ class FaqBase(BaseModel):
 
 class FaqAnswer(BaseModel):
     id: int
-    answer: str
-    answerer_id: int
+    answer: str | None
+    answerer_id: int | None
 
 
 class FaqCreate(FaqBase):
@@ -29,8 +29,8 @@ class FaqCreate(FaqBase):
 
 class Faq(FaqBase):
     id: int
-    answer: str
-    answerer_id: int
+    answer: str | None
+    answerer_id: int | None
 
     class Config:
         from_attributes = True
