@@ -1,10 +1,10 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from .dbContext import Base
+from app.infrastructure.main_database import Base
 
 
-class Project(Base):
+class ProjectModel(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -16,7 +16,7 @@ class Project(Base):
     projectUri = Column(String)
 
 
-class PersonalContact(Base):
+class PersonalContactModel(Base):
     __tablename__ = "personalContacts"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -24,7 +24,7 @@ class PersonalContact(Base):
     icon = Column(String)
 
 
-class Skill(Base):
+class SkillModel(Base):
     __tablename__ = "skills"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -33,7 +33,7 @@ class Skill(Base):
     mdiIcon = Column(String)
 
 
-class SocialMedia(Base):
+class SocialMediaModel(Base):
     __tablename__ = "socials"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -43,7 +43,7 @@ class SocialMedia(Base):
     handle = Column(String)
 
 
-class Hobby(Base):
+class HobbyModel(Base):
     __tablename__ = "hobbies"
 
     id = Column(Integer, primary_key=True, index=True)
