@@ -17,5 +17,7 @@ WORKDIR /
 
 EXPOSE 5050
 
+ENV DB_CONNECTION_STRING=$DB_CONNECTION_STRING
+
 # start the api
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5050"]
