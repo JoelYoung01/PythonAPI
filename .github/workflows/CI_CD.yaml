@@ -6,19 +6,9 @@ on:
   push:
     branches:
       - main
-
-env:
-  DB_CONNECTION_STRING: saycheese # Used by the Dockerfile while building
       
 jobs:
-  Initialize:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Add Env Variables
-        run: |
-          export DB_CONNECTION_STRING="saycheese"
   CI_CD:
-    needs: Initialize
     uses: joelyoung01/Templates/.github/workflows/CI_CD.yaml@main
     with:
       docker_user: joelyoung01
