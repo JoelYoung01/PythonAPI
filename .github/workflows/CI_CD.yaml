@@ -8,7 +8,7 @@ on:
       - main
 
 env:
-  DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }} # Used by the Dockerfile while building
+  DB_CONNECTION_STRING: saycheese # Used by the Dockerfile while building
       
 jobs:
   CI_CD:
