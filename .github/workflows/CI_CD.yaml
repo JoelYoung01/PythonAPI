@@ -11,6 +11,12 @@ env:
   DB_CONNECTION_STRING: saycheese # Used by the Dockerfile while building
       
 jobs:
+  Initialize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add Env Variables
+        run: |
+          $DB_CONNECTION_STRING = saycheese
   CI_CD:
     uses: joelyoung01/Templates/.github/workflows/CI_CD.yaml@main
     with:
