@@ -16,8 +16,9 @@ jobs:
     steps:
       - name: Add Env Variables
         run: |
-          $DB_CONNECTION_STRING = saycheese
+          export DB_CONNECTION_STRING="saycheese"
   CI_CD:
+    needs: Initialize
     uses: joelyoung01/Templates/.github/workflows/CI_CD.yaml@main
     with:
       docker_user: joelyoung01
