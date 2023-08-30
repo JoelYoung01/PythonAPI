@@ -24,6 +24,6 @@ jobs:
       image_name: pythonapi
       deployment_user: deploy
       host_port: 5050
-      server_hostname: joelyoung.dev
+      server_hostname: api.joelyoung.dev
     secrets:
       server_ssh_key: ${{ secrets.SERVER_SSH_KEY }}
