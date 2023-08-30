@@ -6,10 +6,23 @@ on:
   push:
     branches:
       - main
+
+env:
+  docker_username: joelyoung01
+  image_name: pythonapi
       
 jobs:
-  CI_CD:
-    uses: joelyoung01/Templates/.github/workflows/CI_CD.yaml@main
+  build:
+    uses: joelyoung01/Templates/.github/workflows/BuildDockerImage.yaml@main
+    with:
+      docker_username: joelyoung01
+      image_name: pythonapi
+    secrets:
+      docker_access_key: ${{ secrets.DOCKER_ACCESS_KEY }}
+      
+  deploy:
+    uses: joelyoung01/Templates/.github/workflows/DeployDockerImage.yaml@main
+    needs: build
     with:
       docker_user: joelyoung01
       image_name: pythonapi
@@ -17,5 +30,4 @@ jobs:
       host_port: 5050
       server_hostname: joelyoung.dev
     secrets:
-      docker_access_key: ${{ secrets.DOCKER_ACCESS_KEY }}
       server_ssh_key: ${{ secrets.SERVER_SSH_KEY }}
