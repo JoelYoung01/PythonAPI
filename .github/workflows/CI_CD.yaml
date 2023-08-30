@@ -6,10 +6,6 @@ on:
   push:
     branches:
       - main
-
-env:
-  docker_username: joelyoung01
-  image_name: pythonapi
       
 jobs:
   build:
