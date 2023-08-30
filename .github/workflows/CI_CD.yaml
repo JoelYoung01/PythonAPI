@@ -1,0 +1,21 @@
+name: CI / CD Workflow
+run-name: Deploy to PROD started by ${{ github.actor }}
+# This workflow will build and deploy the Docker image to the server
+
+on:
+  push:
+    branches:
+      - main
+      
+jobs:
+  CI_CD:
+    uses: joelyoung01/Templates/.github/workflows/CI_CD.yaml@main
+    with:
+      docker_user: joelyoung01
+      image_name: pythonapi
+      deployment_user: deploy
+      host_port: 5050
+      server_hostname: joelyoung.dev
+    secrets:
+      docker_access_key: ${{ secrets.DOCKER_ACCESS_KEY }}
+      server_ssh_key: ${{ secrets.SERVER_SSH_KEY }}
