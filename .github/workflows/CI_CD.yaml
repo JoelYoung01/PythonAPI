@@ -27,3 +27,4 @@ jobs:
       server_hostname: api.joelyoung.dev
     secrets:
       server_ssh_key: ${{ secrets.SERVER_SSH_KEY }}
+      server_ssh_port: ${{ secrets.SERVER_SSH_PORT}}
