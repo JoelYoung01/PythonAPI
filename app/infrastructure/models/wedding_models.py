@@ -9,5 +9,5 @@ class FaqModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     question = Column(String(255))
     answer = Column(String(255), nullable=True)
-    asker_id = Column(Integer, nullable=True)
-    answerer_id = Column(Integer, nullable=True)
+    asker = Column(String(255), nullable=True)
+    answerer = Column(String(255), nullable=True)
