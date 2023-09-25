@@ -2,7 +2,7 @@ from typing import List
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
-from app.entities.wedding.Faq import Faq, FaqAnswer, FaqCreate
+from app.entities.wedding.Faq import Faq, FaqAnswer, FaqCreate, FaqUpdate
 
 load_dotenv()
 
@@ -43,7 +43,9 @@ def build_app():
         return wedding_service.answer_faq(db, faq_id, faq)
 
     @app.post("/faq/{faq_id}", tags=["wedding"])
-    def update_faq(faq_id: int, faq: Faq, db: Session = Depends(get_wedding_db)) -> Faq:
+    def update_faq(
+        faq_id: int, faq: FaqUpdate, db: Session = Depends(get_wedding_db)
+    ) -> Faq:
         return wedding_service.update_faq(db, faq_id, faq)
 
     @app.delete("/faq/{faq_id}", tags=["wedding"])

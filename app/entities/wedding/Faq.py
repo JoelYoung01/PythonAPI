@@ -26,6 +26,13 @@ class FaqCreate(FaqBase):
     pass
 
 
+class FaqUpdate(BaseModel):
+    question: str | None = None
+    asker: str | None = None
+    answer: str | None = None
+    answerer: str | None = None
+
+
 class Faq(FaqBase):
     id: int
     answer: str | None

@@ -42,7 +42,7 @@ def create_faq(db: Session, faq: FaqCreate):
 def answer_faq(db: Session, faq_id: int, faq: FaqAnswer):
     """Answer an FAQ by it's ID, return the answered FAQ"""
 
-    db_faq = db.query(models.Faq).filter(models.Faq.id == faq_id).first()
+    db_faq = db.query(models.FaqModel).filter(models.FaqModel.id == faq_id).first()
     if db_faq is None:
         raise HTTPException(status_code=404, detail=f"FAQ with id {faq_id} not found")
     if db_faq.answer is not None:
