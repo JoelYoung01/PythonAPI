@@ -1,26 +1,25 @@
+from typing import Union
 from pydantic import BaseModel
 
 
 class FaqBase(BaseModel):
     question: str
-    asker_id: int | None
+    asker: str | None = None
 
     class Config:
         json_schema_extra = {
             "examples": [
                 {
-                    "id": 24,
-                    "question": "This is a very good question, please answer?",
-                    "asker_id": 2,
+                    "question": "Now what if they ask a good question?",
+                    "asker": "Steve",
                 },
             ]
         }
 
 
 class FaqAnswer(BaseModel):
-    id: int
-    answer: str | None
-    answerer_id: int | None
+    answer: str
+    answerer: str | None = None
 
 
 class FaqCreate(FaqBase):
@@ -30,7 +29,7 @@ class FaqCreate(FaqBase):
 class Faq(FaqBase):
     id: int
     answer: str | None
-    answerer_id: int | None
+    answerer: str | None
 
     class Config:
         from_attributes = True
@@ -40,15 +39,15 @@ class Faq(FaqBase):
                     "id": 24,
                     "question": "This is a very good question, please answer?",
                     "answer": "This is a very good answer, please ask more questions",
-                    "asker_id": 2,
-                    "answerer_id": 7,
+                    "asker": "Steve",
+                    "answerer": "Alex",
                 },
                 {
                     "id": 13,
                     "question": "This is a very good question with no answer?",
                     "answer": None,
-                    "asker_id": 7,
-                    "answerer_id": None,
+                    "asker": "Steve",
+                    "answerer": None,
                 },
             ]
         }
