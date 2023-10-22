@@ -69,12 +69,12 @@ app.mount("/wedding", build_wedding_app())
 #
 
 
-@app.get("/project", tags=["projects"])
+@app.get("/project", tags=["Projects"])
 def get_all_projects(db: SessionLocal = Depends(get_main_db)) -> List[Project]:
     return project_service.get_projects(db)
 
 
-@app.get("/project/{project_id}", tags=["projects"])
+@app.get("/project/{project_id}", tags=["Projects"])
 def get_project_by_id(
     project_id: int, db: SessionLocal = Depends(get_main_db)
 ) -> Project:
@@ -86,7 +86,7 @@ def get_project_by_id(
     return project
 
 
-@app.put("/project/{project_id}", tags=["projects"])
+@app.put("/project/{project_id}", tags=["Projects"])
 def update_project(
     project_id: int,
     updated_project: ProjectUpdate,
@@ -99,14 +99,14 @@ def update_project(
     return project_service.update_project(db, project_id, updated_project)
 
 
-@app.delete("/project/{project_id}", tags=["projects"])
+@app.delete("/project/{project_id}", tags=["Projects"])
 def remove_project_by_id(
     project_id: int, db: SessionLocal = Depends(get_main_db)
 ) -> Project:
     return project_service.remove_project_by_id(db, project_id)
 
 
-@app.post("/project", tags=["projects"])
+@app.post("/project", tags=["Projects"])
 def create_project(
     project: ProjectCreate, db: SessionLocal = Depends(get_main_db)
 ) -> Project:
