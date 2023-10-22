@@ -21,3 +21,11 @@ Have the Local Db Container running. Then, run the following command to start th
 ```bash
 uvicorn app.main:app --reload
 ```
+
+Alternatively, you can run the api in a container by running the following command:
+
+```bash
+docker run --rm -it -p 5050:5050/tcp --env-file .env --name pythonapi <image_name>
+```
+
+Don't forget to replace `<image_name>` with the name of the image you built, for example `joelyoung01/pythonapi:latest`.
