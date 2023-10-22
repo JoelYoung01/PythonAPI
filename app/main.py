@@ -10,12 +10,12 @@ from app.entities.Project import Project, ProjectCreate, ProjectUpdate
 
 load_dotenv()
 
-from app.infrastructure.main_database import SessionLocal, engine, Base
+from app.infrastructure.main_database import SessionLocal
 from app.routers.wedding import build_app as build_wedding_app
 import app.services.project_service as project_service
 
-
-Base.metadata.create_all(bind=engine)
+# Automatically create a global session to be used by all routes
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
