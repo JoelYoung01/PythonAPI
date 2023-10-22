@@ -24,7 +24,18 @@ def get_project_by_id(db: Session, project_id: int):
 def create_project(db: Session, project: ProjectCreate):
     """Create a Project, return the created Project"""
 
-    # Make sure there isn't already a project with the same key
+    # Validate the project_key is not empty, and is all lowercase alphanumeric characters or hyphens
+    if (
+        project.project_key is None
+        or not project.project_key.islower()
+        or not project.project_key.replace("-", "").isalnum()
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Project key must be all lowercase alphanumeric characters or hyphens",
+        )
+
+    # Validate there isn't already a project with the same key
     duplicates = (
         db.query(models.ProjectModel)
         .filter(models.ProjectModel.project_key == project.project_key)
