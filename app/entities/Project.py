@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 
+from fastapi_utils.api_model import APIModel
 
-class ProjectCreate(BaseModel):
+
+class ProjectCreate(APIModel):
     """The payload required to Create a new Project"""
 
     project_key: str
@@ -12,7 +14,7 @@ class ProjectCreate(BaseModel):
     uri: str | None = None
 
 
-class ProjectUpdate(BaseModel):
+class ProjectUpdate(APIModel):
     """The payload required to Update an existing Project"""
 
     project_key: str | None = None
@@ -23,7 +25,7 @@ class ProjectUpdate(BaseModel):
     uri: str | None = None
 
 
-class Project(BaseModel):
+class Project(APIModel):
     """The payload returned when a Project is retrieved"""
 
     project_id: int
