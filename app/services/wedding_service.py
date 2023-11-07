@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 import app.infrastructure.models.wedding_models as models
-from app.entities.wedding.Faq import FaqAnswer, FaqCreate
+from app.entities.wedding.Faq import FaqCreate, FaqUpdate
 
 
 def get_faqs(db: Session):
@@ -39,32 +39,35 @@ def create_faq(db: Session, faq: FaqCreate):
     return db_faq
 
 
-def answer_faq(db: Session, faq_id: int, faq: FaqAnswer):
-    """Answer an FAQ by it's ID, return the answered FAQ"""
-
-    db_faq = db.query(models.FaqModel).filter(models.FaqModel.id == faq_id).first()
-    if db_faq is None:
-        raise HTTPException(status_code=404, detail=f"FAQ with id {faq_id} not found")
-    if db_faq.answer is not None:
-        raise HTTPException(
-            status_code=400, detail=f"FAQ with id {faq_id} already has an answer"
-        )
-
-    db_faq.answer = faq.answer
-    db_faq.answerer = faq.answerer
-    db.commit()
-    db.refresh(db_faq)
-    return db_faq
-
-
-def update_faq(db: Session, faq_id: int, faq: FaqAnswer):
+def update_faq(db: Session, faq_id: int, faq: FaqUpdate):
     """Update an FAQ by it's ID, return the updated FAQ"""
 
     db_faq = db.query(models.FaqModel).filter(models.FaqModel.id == faq_id).first()
+
+    if db_faq is None:
+        raise HTTPException(status_code=404, detail=f"FAQ with id {faq_id} not found")
+
+    # Question (required)
     db_faq.question = faq.question or db_faq.question
-    db_faq.asker = faq.asker or db_faq.asker
-    db_faq.answer = faq.answer or db_faq.answer
-    db_faq.answerer = faq.answerer or db_faq.answerer
+
+    # Asker
+    if faq.asker is not None and faq.asker.lower() in ["null", "none", ""]:
+        db_faq.asker = None
+    else:
+        db_faq.asker = faq.asker or db_faq.asker
+
+    # Answer
+    if faq.answer is not None and faq.answer.lower() in ["null", "none", ""]:
+        db_faq.answer = None
+    else:
+        db_faq.answer = faq.answer or db_faq.answer
+
+    # Answerer
+    if faq.answerer is not None and faq.answerer.lower() in ["null", "none", ""]:
+        db_faq.answerer = None
+    else:
+        db_faq.answerer = faq.answerer or db_faq.answerer
+
     db.commit()
     db.refresh(db_faq)
     return db_faq

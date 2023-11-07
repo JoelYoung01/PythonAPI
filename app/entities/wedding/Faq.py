@@ -1,8 +1,12 @@
 from typing import Union
 from pydantic import BaseModel
 
+from fastapi_utils.api_model import APIModel
 
-class FaqBase(BaseModel):
+
+class FaqCreate(APIModel):
+    """The payload required to Create a new Faq"""
+
     question: str
     asker: str | None = None
 
@@ -17,24 +21,21 @@ class FaqBase(BaseModel):
         }
 
 
-class FaqAnswer(BaseModel):
-    answer: str
-    answerer: str | None = None
+class FaqUpdate(APIModel):
+    """The payload required to Update an existing Faq"""
 
-
-class FaqCreate(FaqBase):
-    pass
-
-
-class FaqUpdate(BaseModel):
     question: str | None = None
     asker: str | None = None
     answer: str | None = None
     answerer: str | None = None
 
 
-class Faq(FaqBase):
+class Faq(APIModel):
+    """The payload returned when a Faq is retrieved"""
+
     id: int
+    question: str
+    asker: str | None
     answer: str | None
     answerer: str | None
 
