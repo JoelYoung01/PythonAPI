@@ -42,10 +42,10 @@ class Project(APIModel):
             "examples": [
                 {
                     "id": 24,
-                    "project_key": "project_key",
+                    "projectKey": "project_key",
                     "title": "title",
-                    "image_src": "image_src",
-                    "source_uri": "source_uri",
+                    "imageSrc": "image_src",
+                    "sourceUri": "source_uri",
                     "description": "description",
                     "uri": "uri",
                 },
