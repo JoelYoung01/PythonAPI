@@ -14,6 +14,14 @@ class CreateAlbum(APIModel):
     description: str | None = None
 
 
+class UpdateAlbum(APIModel):
+    """The payload used to update an Album"""
+
+    title: str | None = None
+    description: str | None = None
+    cover_photo_id: int | None = None
+
+
 class Album(APIModel):
     """The payload returned when an Album is retrieved"""
 

@@ -7,7 +7,7 @@ from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from app.entities.photo import CreatePhoto, Photo
+from app.entities.photo import CreatePhoto, Photo, UpdatePhoto
 from app.entities.album import Album, CreateAlbum
 from app.entities.project import Project, ProjectCreate, ProjectUpdate
 
@@ -194,10 +194,27 @@ def create_album(album: CreateAlbum, db: SessionLocal = Depends(get_main_db)) ->
     return photo_service.create_album(db, album)
 
 
-# Add a photo to an album
 @app.post("/album/addphotos/{album_id}", tags=["Photos"])
 def add_photo_to_album(
     album_id: int, photo_ids: List[int], db: SessionLocal = Depends(get_main_db)
 ) -> Album:
     """Add a Photo to an Album"""
     return photo_service.add_photos_to_album(db, album_id, photo_ids)
+
+
+@app.put("/photo/{photo_id}", tags=["Photos"])
+def update_photo(
+    photo_id: int, updated_photo: UpdatePhoto, db: SessionLocal = Depends(get_main_db)
+) -> Photo:
+    """Update a Photo by it's ID.
+    To set an optional value to null/None, pass "null" or "None" as the value."""
+    return photo_service.update_photo(db, photo_id, updated_photo)
+
+
+@app.put("/album/{album_id}", tags=["Photos"])
+def update_album(
+    album_id: int, updated_album: CreateAlbum, db: SessionLocal = Depends(get_main_db)
+) -> Album:
+    """Update a Album by it's ID.
+    To set an optional value to null/None, pass "null" or "None" as the value."""
+    return photo_service.update_album(db, album_id, updated_album)

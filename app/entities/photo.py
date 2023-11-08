@@ -18,6 +18,19 @@ class CreatePhoto(APIModel):
     upload_date: datetime = datetime.now()
 
 
+class UpdatePhoto(APIModel):
+    """The payload used to update a Photo"""
+
+    filename: str | None = None
+    title: str | None = None
+    description: str | None = None
+    url: str | None = None
+    width: int | None = None
+    height: int | None = None
+    format: str | None = None
+    upload_date: datetime | None = None
+
+
 class Photo(APIModel):
     """The payload returned when a Photo is retrieved"""
 
