@@ -1,6 +1,3 @@
-from typing import Union
-from pydantic import BaseModel
-
 from fastapi_utils.api_model import APIModel
 
 
@@ -10,7 +7,7 @@ class FaqCreate(APIModel):
     question: str
     asker: str | None = None
 
-    class Config:
+    class Config(APIModel.Config):
         json_schema_extra = {
             "examples": [
                 {
@@ -39,7 +36,7 @@ class Faq(APIModel):
     answer: str | None
     answerer: str | None
 
-    class Config:
+    class Config(APIModel.Config):
         from_attributes = True
         json_schema_extra = {
             "examples": [

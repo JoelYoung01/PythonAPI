@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+"""Entities related to a Project
+"""
 
 from fastapi_utils.api_model import APIModel
 
@@ -36,7 +37,9 @@ class Project(APIModel):
     description: str
     uri: str | None = None
 
-    class Config:
+    class Config(APIModel.Config):
+        """The ProjectConfig is used to configure the Project APIModel."""
+
         from_attributes = True
         json_schema_extra = {
             "examples": [

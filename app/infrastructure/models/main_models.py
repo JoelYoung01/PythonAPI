@@ -1,4 +1,6 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+"""_summary_: The ProjectModel is used to represent a Project in the database.
+"""
+from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from app.infrastructure.main_database import Base
@@ -16,6 +18,49 @@ class ProjectModel(Base):
     source_uri = Column("SourceUri", String(1023), nullable=False)
     description = Column("Description", String, nullable=False)
     uri = Column("Uri", String(1023), nullable=True)
+
+
+# Many to Many relationship between Album and Photo
+album_photo = Table(
+    "AlbumPhoto",
+    Base.metadata,
+    Column("photo_id", Integer, ForeignKey("Photo.id")),
+    Column("album_id", Integer, ForeignKey("Album.id")),
+)
+
+
+class PhotoModel(Base):
+    """Photo Model"""
+
+    __tablename__ = "Photo"
+
+    id = Column("id", Integer, primary_key=True, index=True)
+    filename = Column("filename", String(255), nullable=False)
+    title = Column("title", String(255), nullable=True)
+    description = Column("description", String, nullable=True)
+    url = Column("url", String(255), nullable=True)
+    width = Column("width", Integer, nullable=True)
+    height = Column("height", Integer, nullable=True)
+    upload_date = Column("upload_date", Date, nullable=True)
+    format = Column("format", String(10), nullable=True)
+    created_at = Column("created_at", Date, nullable=True)
+    updated_at = Column("updated_at", Date, nullable=True)
+
+
+class AlbumModel(Base):
+    """Album Model"""
+
+    __tablename__ = "Album"
+
+    id = Column("id", Integer, primary_key=True, index=True)
+    title = Column("title", String(255), nullable=False)
+    description = Column("description", String, nullable=True)
+    cover_photo_id = Column(Integer, ForeignKey("Photo.id"), nullable=True)
+    created_at = Column("created_at", Date, nullable=True)
+    updated_at = Column("updated_at", Date, nullable=True)
+
+    cover_photo = relationship("PhotoModel")
+    photos = relationship("PhotoModel", secondary=album_photo)
 
 
 # class PersonalContactModel(Base):

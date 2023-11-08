@@ -1,12 +1,21 @@
+"""Project Service, contains logic for interacting with Projects in the database.
+"""
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 import app.infrastructure.models.main_models as models
-from app.entities.Project import ProjectCreate, ProjectUpdate
+from app.entities.project import ProjectCreate, ProjectUpdate
 
 
 def get_projects(db: Session):
-    """Get all Projects, return a list of Projects"""
+    """Get all Projects, return a list of Projects
+
+    Args:
+        db (Session): Database
+
+    Returns:
+        List[ProjectModel]: List of all Projects in Database
+    """
 
     return db.query(models.ProjectModel).all()
 
