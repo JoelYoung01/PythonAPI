@@ -25,7 +25,9 @@ uvicorn app.main:app --reload
 Alternatively, you can run the api in a container by running the following command:
 
 ```bash
-docker run --rm -it -p 5050:5050/tcp --env-file .env --name pythonapi <image_name>
+docker run --rm -it -p 5050:5050/tcp --env-file .env --name pythonapi -v <local path to project>/app/static/images:/app/static/images <image_name>
 ```
 
 Don't forget to replace `<image_name>` with the name of the image you built, for example `joelyoung01/pythonapi:latest`.
+
+A tip here is to store the command for your machine within the .env file (as a comment) so that you can just quickly copy-paste it when needed!

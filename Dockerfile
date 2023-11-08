@@ -10,6 +10,8 @@ COPY requirements.txt .
 # install python requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
+VOLUME /app/static/images
+
 # copy the rest of the files over to the container (do this after the pip install command for cache optimization)
 COPY app .
 
