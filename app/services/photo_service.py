@@ -1,6 +1,7 @@
 """Photo Service, contains logic for interacting with Photos in the database.
 """
 
+from datetime import datetime
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.entities.album import CreateAlbum
@@ -100,6 +101,8 @@ def create_photo(db: Session, photo: CreatePhoto) -> models.PhotoModel:
         height=photo.height,
         upload_date=photo.upload_date,
         format=photo.format,
+        updated_at=datetime.now(),
+        created_at=datetime.now(),
     )
 
     db.add(new_photo)
@@ -194,6 +197,8 @@ def create_album(db: Session, album: CreateAlbum) -> models.AlbumModel:
     new_album = models.AlbumModel(
         title=album.title,
         description=album.description,
+        updated_at=datetime.now(),
+        created_at=datetime.now(),
     )
 
     db.add(new_album)

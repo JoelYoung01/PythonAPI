@@ -15,7 +15,7 @@ class CreatePhoto(APIModel):
     width: int | None = None
     height: int | None = None
     format: str | None = None
-    upload_date: datetime | None = datetime.now()
+    upload_date: datetime = datetime.now()
 
 
 class Photo(APIModel):
