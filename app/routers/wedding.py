@@ -10,7 +10,7 @@ from app.infrastructure.wedding_database import SessionLocal as wedding_SessionL
 import app.services.wedding_service as wedding_service
 
 
-def build_app():
+def build_app(oath2_scheme):
     app = FastAPI()
 
     # Dependency

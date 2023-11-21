@@ -1,9 +1,26 @@
 """_summary_: The ProjectModel is used to represent a Project in the database.
 """
+from venv import create
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from app.infrastructure.main_database import Base
+
+
+class UserModel(Base):
+    """User Model"""
+
+    __tablename__ = "Users"
+
+    user_id = Column("id", Integer, primary_key=True, index=True)
+    username = Column("username", String(255), nullable=False)
+    email = Column("email", String(255), nullable=False)
+    first_name = Column("firstname", String(255), nullable=False)
+    last_name = Column("lastname", String(255), nullable=False)
+    preferred_name = Column("preferredname", String(255), nullable=True)
+    password_hash = Column("passwordhash", String(255), nullable=False)
+    created_at = Column("created_at", Date, nullable=True)
+    updated_at = Column("updated_at", Date, nullable=True)
 
 
 class ProjectModel(Base):

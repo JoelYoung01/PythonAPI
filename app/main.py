@@ -1,21 +1,23 @@
 """Main FastAPI application module.
 """
 
-from typing import List
+from datetime import timedelta
+from typing import Annotated, Dict, List
 from fastapi import FastAPI, HTTPException
-from fastapi.params import Depends
+from fastapi import Depends
 from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.entities.photo import CreatePhoto, Photo, UpdatePhoto
 from app.entities.album import Album, CreateAlbum
 from app.entities.project import Project, ProjectCreate, ProjectUpdate
-
+from app.entities.user import CreateUser, User
 
 from app.infrastructure.main_database import SessionLocal
 from app.routers.wedding import build_app as build_wedding_app
-from app.services import project_service
-from app.services import photo_service
+from app.services import project_service, photo_service, user_service
+from app.services.user_service import oath2_scheme, get_current_user
 
 # Automatically create a global session to be used by all routes
 # Base.metadata.create_all(bind=engine)
@@ -73,10 +75,42 @@ def health():
 
 # Mount any sub-apps
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-app.mount("/wedding", build_wedding_app())
+app.mount("/wedding", build_wedding_app(oath2_scheme=oath2_scheme))
 
 #
-# Setup main api routes
+# User Routes
+#
+
+
+@app.post("/token", tags=["Users"])
+async def login(
+    db: Annotated[SessionLocal, Depends(get_main_db)],
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+) -> Dict[str, str]:
+    """Login and get a token"""
+    user = user_service.authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    access_token = user_service.create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/users/me", tags=["Users"])
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_user)]
+) -> User:
+    """Read the current user"""
+    return current_user
+
+
+@app.post("/users", tags=["Users"])
+def create_user(user: CreateUser, db: SessionLocal = Depends(get_main_db)) -> User:
+    """Create a new User"""
+    return user_service.create_user(db, user)
+
+
+#
+# Project Routes
 #
 
 
