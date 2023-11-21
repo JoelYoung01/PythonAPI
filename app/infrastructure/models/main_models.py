@@ -7,6 +7,14 @@ from sqlalchemy.orm import relationship
 from app.infrastructure.main_database import Base
 
 
+user_role = Table(
+    "UserRole",
+    Base.metadata,
+    Column("userId", Integer, ForeignKey("Users.id")),
+    Column("roleId", Integer, ForeignKey("Roles.id")),
+)
+
+
 class UserModel(Base):
     """User Model"""
 
@@ -21,6 +29,19 @@ class UserModel(Base):
     password_hash = Column("passwordhash", String(255), nullable=False)
     created_at = Column("created_at", Date, nullable=True)
     updated_at = Column("updated_at", Date, nullable=True)
+
+    roles = relationship("RoleModel", secondary=user_role)
+
+
+class RoleModel(Base):
+    """Role Model"""
+
+    __tablename__ = "Roles"
+
+    role_id = Column("id", Integer, primary_key=True, index=True)
+    role_key = Column("roleKey", String(255), nullable=False)
+    role_name = Column("roleName", String(255), nullable=False)
+    created_at = Column("created_at", Date, nullable=True)
 
 
 class ProjectModel(Base):

@@ -1,18 +1,20 @@
 from datetime import datetime, timedelta
 import os
-from typing import Annotated
+import re
+from typing import Annotated, List
 from dotenv import load_dotenv
 
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from rsa import verify
+from app.entities.role import CreateRole
 from app.entities.user import CreateUser, User
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 
-from app.infrastructure.models.main_models import UserModel
+from app.infrastructure.models.main_models import RoleModel, UserModel
 from app.infrastructure.main_database import SessionLocal
 
 load_dotenv()
@@ -126,6 +128,21 @@ def create_user(db: Session, create_user_request: CreateUser) -> UserModel:
     if db.query(UserModel).filter(UserModel.email == create_user_request.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    # Validate the user's username
+    if not create_user_request.username.isalnum():
+        raise HTTPException(
+            status_code=400,
+            detail="Username must only contain alphanumeric characters",
+        )
+
+    # Validate the user's email
+    email_re = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    if not re.match(email_re, create_user_request.email):
+        raise HTTPException(
+            status_code=400,
+            detail="Email must be a valid email address",
+        )
+
     db_user = UserModel(
         username=create_user_request.username,
         email=create_user_request.email,
@@ -138,6 +155,64 @@ def create_user(db: Session, create_user_request: CreateUser) -> UserModel:
     )
 
     db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def get_role(db: Session, role_key: str) -> RoleModel | None:
+    """Get a role by it's role_key"""
+
+    return db.query(RoleModel).filter(RoleModel.role_key == role_key).first()
+
+
+def get_roles(db: Session) -> List[RoleModel]:
+    """Get all roles"""
+
+    return db.query(RoleModel).all()
+
+
+def create_role(db: Session, create_role_request: CreateRole) -> RoleModel:
+    """Create a role"""
+
+    # If the role already exists, raise an error
+    if get_role(db, create_role_request.role_key):
+        raise HTTPException(status_code=400, detail="Role already registered")
+
+    # Validate the role's key is alphanumeric, hyphens, or underscores
+    if not create_role_request.role_key.isalnum():
+        raise HTTPException(
+            status_code=400,
+            detail="Role key must only contain alphanumeric characters, hyphens, or underscores",
+        )
+
+    db_role = RoleModel(
+        role_key=create_role_request.role_key,
+        role_name=create_role_request.role_name,
+        created_at=datetime.now(),
+    )
+
+    db.add(db_role)
+    db.commit()
+    db.refresh(db_role)
+    return db_role
+
+
+def add_user_on_role(db: Session, user_id: int, role_key: str) -> None:
+    """Add a user to a role"""
+
+    db_user = db.query(UserModel).filter(UserModel.user_id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    db_role = db.query(RoleModel).filter(RoleModel.role_key == role_key).first()
+    if not db_role:
+        raise HTTPException(status_code=400, detail="Role not found")
+
+    if db_role in db_user.roles:
+        raise HTTPException(status_code=400, detail="User already has this role")
+
+    db_user.roles.append(db_role)
     db.commit()
     db.refresh(db_user)
     return db_user

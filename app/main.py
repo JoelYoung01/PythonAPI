@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.entities.photo import CreatePhoto, Photo, UpdatePhoto
 from app.entities.album import Album, CreateAlbum
 from app.entities.project import Project, ProjectCreate, ProjectUpdate
+from app.entities.role import CreateRole, Role
 from app.entities.user import CreateUser, User
 
 from app.infrastructure.main_database import SessionLocal
@@ -107,6 +108,33 @@ async def read_users_me(
 def create_user(user: CreateUser, db: SessionLocal = Depends(get_main_db)) -> User:
     """Create a new User"""
     return user_service.create_user(db, user)
+
+
+@app.get("/roles", tags=["Users"])
+def get_all_roles(db: SessionLocal = Depends(get_main_db)) -> List[Role]:
+    """Get all Roles"""
+    return user_service.get_roles(db)
+
+
+@app.post("/roles", tags=["Users"])
+def create_role(
+    role: CreateRole,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> Role:
+    """Create a new Role"""
+    return user_service.create_role(db, role)
+
+
+@app.post("/users/addRole/{user_id}", tags=["Users"])
+def add_role_to_user(
+    user_id: int,
+    role_key: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> User:
+    """Add a Role to a User"""
+    return user_service.add_user_on_role(db, user_id, role_key)
 
 
 #
