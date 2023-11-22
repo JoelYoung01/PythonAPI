@@ -57,7 +57,7 @@ def get_main_db():
 async def get_current_user(
     token: Annotated[str, Depends(oath2_scheme)],
     db: SessionLocal = Depends(get_main_db),
-) -> User:
+) -> UserModel:
     """Get the current user from the token"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -180,7 +180,7 @@ def create_role(db: Session, create_role_request: CreateRole) -> RoleModel:
         raise HTTPException(status_code=400, detail="Role already registered")
 
     # Validate the role's key is alphanumeric, hyphens, or underscores
-    if not create_role_request.role_key.isalnum():
+    if not re.match("^[a-zA-Z0-9_-]*$", create_role_request.role_key):
         raise HTTPException(
             status_code=400,
             detail="Role key must only contain alphanumeric characters, hyphens, or underscores",
@@ -216,3 +216,28 @@ def add_user_on_role(db: Session, user_id: int, role_key: str) -> None:
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def remove_user_from_role(db: Session, user_id: int, role_key: str) -> None:
+    """Remove a user from a role"""
+
+    db_user = db.query(UserModel).filter(UserModel.user_id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    db_role = db.query(RoleModel).filter(RoleModel.role_key == role_key).first()
+    if not db_role:
+        raise HTTPException(status_code=400, detail="Role not found")
+
+    if db_role not in db_user.roles:
+        raise HTTPException(status_code=400, detail="User does not have this role")
+
+    db_user.roles.remove(db_role)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def user_has_role(db: Session, user: UserModel, role_key: str) -> bool:
+    """Check if a user has a role"""
+    return role_key in [role.role_key for role in user.roles]

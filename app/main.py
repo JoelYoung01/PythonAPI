@@ -16,9 +16,9 @@ from app.entities.role import CreateRole, Role
 from app.entities.user import CreateUser, User
 
 from app.infrastructure.main_database import SessionLocal
+from app.infrastructure.models.main_models import UserModel
 from app.routers.wedding import build_app as build_wedding_app
 from app.services import project_service, photo_service, user_service
-from app.services.user_service import oath2_scheme, get_current_user
 
 # Automatically create a global session to be used by all routes
 # Base.metadata.create_all(bind=engine)
@@ -76,7 +76,7 @@ def health():
 
 # Mount any sub-apps
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-app.mount("/wedding", build_wedding_app(oath2_scheme=oath2_scheme))
+app.mount("/wedding", build_wedding_app(oath2_scheme=user_service.oath2_scheme))
 
 #
 # User Routes
@@ -98,7 +98,7 @@ async def login(
 
 @app.get("/users/me", tags=["Users"])
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[User, Depends(user_service.get_current_user)]
 ) -> User:
     """Read the current user"""
     return current_user
@@ -119,10 +119,14 @@ def get_all_roles(db: SessionLocal = Depends(get_main_db)) -> List[Role]:
 @app.post("/roles", tags=["Users"])
 def create_role(
     role: CreateRole,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
     db: SessionLocal = Depends(get_main_db),
 ) -> Role:
     """Create a new Role"""
+
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not an admin")
+
     return user_service.create_role(db, role)
 
 
@@ -130,11 +134,30 @@ def create_role(
 def add_role_to_user(
     user_id: int,
     role_key: str,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
     db: SessionLocal = Depends(get_main_db),
 ) -> User:
     """Add a Role to a User"""
+
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not an admin")
+
     return user_service.add_user_on_role(db, user_id, role_key)
+
+
+@app.delete("/users/removeRole/{user_id}", tags=["Users"])
+def remove_role_from_user(
+    user_id: int,
+    role_key: str,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> User:
+    """Remove a Role from a User"""
+
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not an admin")
+
+    return user_service.remove_user_from_role(db, user_id, role_key)
 
 
 #
@@ -165,6 +188,7 @@ def get_project_by_id(
 def update_project(
     project_id: int,
     updated_project: ProjectUpdate,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
     db: SessionLocal = Depends(get_main_db),
 ) -> Project:
     """Update a Project by it's ID.
@@ -174,7 +198,9 @@ def update_project(
 
 @app.delete("/project/{project_id}", tags=["Projects"])
 def remove_project_by_id(
-    project_id: int, db: SessionLocal = Depends(get_main_db)
+    project_id: int,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Project:
     """Delete a Project by it's ID"""
     return project_service.remove_project_by_id(db, project_id)
@@ -182,7 +208,9 @@ def remove_project_by_id(
 
 @app.post("/project", tags=["Projects"])
 def create_project(
-    project: ProjectCreate, db: SessionLocal = Depends(get_main_db)
+    project: ProjectCreate,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Project:
     """Create a new Project"""
     return project_service.create_project(db, project)
@@ -245,20 +273,31 @@ def get_album_by_id(album_id: int, db: SessionLocal = Depends(get_main_db)) -> A
 
 
 @app.post("/photo", tags=["Photos"])
-def create_photo(photo: CreatePhoto, db: SessionLocal = Depends(get_main_db)) -> Photo:
+def create_photo(
+    photo: CreatePhoto,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> Photo:
     """Create a new Photo"""
     return photo_service.create_photo(db, photo)
 
 
 @app.post("/album", tags=["Photos"])
-def create_album(album: CreateAlbum, db: SessionLocal = Depends(get_main_db)) -> Album:
+def create_album(
+    album: CreateAlbum,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> Album:
     """Create a new Album"""
     return photo_service.create_album(db, album)
 
 
 @app.post("/album/addphotos/{album_id}", tags=["Photos"])
 def add_photo_to_album(
-    album_id: int, photo_ids: List[int], db: SessionLocal = Depends(get_main_db)
+    album_id: int,
+    photo_ids: List[int],
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Album:
     """Add a Photo to an Album"""
     return photo_service.add_photos_to_album(db, album_id, photo_ids)
@@ -266,7 +305,10 @@ def add_photo_to_album(
 
 @app.put("/photo/{photo_id}", tags=["Photos"])
 def update_photo(
-    photo_id: int, updated_photo: UpdatePhoto, db: SessionLocal = Depends(get_main_db)
+    photo_id: int,
+    updated_photo: UpdatePhoto,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Photo:
     """Update a Photo by it's ID.
     To set an optional value to null/None, pass "null" or "None" as the value."""
@@ -275,7 +317,10 @@ def update_photo(
 
 @app.put("/album/{album_id}", tags=["Photos"])
 def update_album(
-    album_id: int, updated_album: CreateAlbum, db: SessionLocal = Depends(get_main_db)
+    album_id: int,
+    updated_album: CreateAlbum,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Album:
     """Update a Album by it's ID.
     To set an optional value to null/None, pass "null" or "None" as the value."""
