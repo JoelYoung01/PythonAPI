@@ -1,26 +1,31 @@
 """Main FastAPI application module.
 """
 
-from typing import List
+from datetime import timedelta
+from typing import Annotated, Dict, List
 from fastapi import FastAPI, HTTPException
-from fastapi.params import Depends
+from fastapi import Depends
 from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.entities.photo import CreatePhoto, Photo, UpdatePhoto
 from app.entities.album import Album, CreateAlbum
 from app.entities.project import Project, ProjectCreate, ProjectUpdate
-
+from app.entities.role import CreateRole, Role
+from app.entities.user import CreateUser, User
 
 from app.infrastructure.main_database import SessionLocal
+from app.infrastructure.models.main_models import UserModel
 from app.routers.wedding import build_app as build_wedding_app
-from app.services import project_service
-from app.services import photo_service
+from app.services import project_service, photo_service, user_service
 
 # Automatically create a global session to be used by all routes
 # Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+modify_role = "GENERAL_MODIFY"
 
 
 # Dependency
@@ -73,10 +78,92 @@ def health():
 
 # Mount any sub-apps
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-app.mount("/wedding", build_wedding_app())
+app.mount("/wedding", build_wedding_app(oath2_scheme=user_service.oath2_scheme))
 
 #
-# Setup main api routes
+# User Routes
+#
+
+
+@app.post("/token", tags=["Users"])
+async def login(
+    db: Annotated[SessionLocal, Depends(get_main_db)],
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+) -> Dict[str, str]:
+    """Login and get a token"""
+    user = user_service.authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    access_token = user_service.create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/users/me", tags=["Users"])
+async def read_users_me(
+    current_user: Annotated[User, Depends(user_service.get_current_user)]
+) -> User:
+    """Read the current user"""
+    return current_user
+
+
+@app.post("/users", tags=["Users"])
+def create_user(user: CreateUser, db: SessionLocal = Depends(get_main_db)) -> User:
+    """Create a new User"""
+    return user_service.create_user(db, user)
+
+
+@app.get("/roles", tags=["Users"])
+def get_all_roles(db: SessionLocal = Depends(get_main_db)) -> List[Role]:
+    """Get all Roles"""
+    return user_service.get_roles(db)
+
+
+@app.post("/roles", tags=["Users"])
+def create_role(
+    role: CreateRole,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> Role:
+    """Create a new Role"""
+
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not an admin")
+
+    return user_service.create_role(db, role)
+
+
+@app.post("/users/addRole/{user_id}", tags=["Users"])
+def add_role_to_user(
+    user_id: int,
+    role_key: str,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> User:
+    """Add a Role to a User"""
+
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not an admin")
+
+    return user_service.add_user_on_role(db, user_id, role_key)
+
+
+@app.delete("/users/removeRole/{user_id}", tags=["Users"])
+def remove_role_from_user(
+    user_id: int,
+    role_key: str,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> User:
+    """Remove a Role from a User"""
+
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not an admin")
+
+    return user_service.remove_user_from_role(db, user_id, role_key)
+
+
+#
+# Project Routes
 #
 
 
@@ -103,26 +190,49 @@ def get_project_by_id(
 def update_project(
     project_id: int,
     updated_project: ProjectUpdate,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
     db: SessionLocal = Depends(get_main_db),
 ) -> Project:
     """Update a Project by it's ID.
     To set an optional value to null/None, pass "null" or "None" as the value."""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to modify projects"
+        )
+
     return project_service.update_project(db, project_id, updated_project)
 
 
 @app.delete("/project/{project_id}", tags=["Projects"])
 def remove_project_by_id(
-    project_id: int, db: SessionLocal = Depends(get_main_db)
+    project_id: int,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Project:
     """Delete a Project by it's ID"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to delete projects"
+        )
+
     return project_service.remove_project_by_id(db, project_id)
 
 
 @app.post("/project", tags=["Projects"])
 def create_project(
-    project: ProjectCreate, db: SessionLocal = Depends(get_main_db)
+    project: ProjectCreate,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Project:
     """Create a new Project"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to create projects"
+        )
+
     return project_service.create_project(db, project)
 
 
@@ -183,38 +293,85 @@ def get_album_by_id(album_id: int, db: SessionLocal = Depends(get_main_db)) -> A
 
 
 @app.post("/photo", tags=["Photos"])
-def create_photo(photo: CreatePhoto, db: SessionLocal = Depends(get_main_db)) -> Photo:
+def create_photo(
+    photo: CreatePhoto,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> Photo:
     """Create a new Photo"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to create photos"
+        )
+
     return photo_service.create_photo(db, photo)
 
 
 @app.post("/album", tags=["Photos"])
-def create_album(album: CreateAlbum, db: SessionLocal = Depends(get_main_db)) -> Album:
+def create_album(
+    album: CreateAlbum,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
+) -> Album:
     """Create a new Album"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to create albums"
+        )
+
     return photo_service.create_album(db, album)
 
 
 @app.post("/album/addphotos/{album_id}", tags=["Photos"])
 def add_photo_to_album(
-    album_id: int, photo_ids: List[int], db: SessionLocal = Depends(get_main_db)
+    album_id: int,
+    photo_ids: List[int],
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Album:
     """Add a Photo to an Album"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to modify albums"
+        )
+
     return photo_service.add_photos_to_album(db, album_id, photo_ids)
 
 
 @app.put("/photo/{photo_id}", tags=["Photos"])
 def update_photo(
-    photo_id: int, updated_photo: UpdatePhoto, db: SessionLocal = Depends(get_main_db)
+    photo_id: int,
+    updated_photo: UpdatePhoto,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Photo:
     """Update a Photo by it's ID.
     To set an optional value to null/None, pass "null" or "None" as the value."""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to modify photos"
+        )
+
     return photo_service.update_photo(db, photo_id, updated_photo)
 
 
 @app.put("/album/{album_id}", tags=["Photos"])
 def update_album(
-    album_id: int, updated_album: CreateAlbum, db: SessionLocal = Depends(get_main_db)
+    album_id: int,
+    updated_album: CreateAlbum,
+    current_user: Annotated[UserModel, Depends(user_service.get_current_user)],
+    db: SessionLocal = Depends(get_main_db),
 ) -> Album:
     """Update a Album by it's ID.
     To set an optional value to null/None, pass "null" or "None" as the value."""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to modify albums"
+        )
+
     return photo_service.update_album(db, album_id, updated_album)

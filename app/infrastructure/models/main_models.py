@@ -1,9 +1,48 @@
 """_summary_: The ProjectModel is used to represent a Project in the database.
 """
-from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
+from venv import create
+from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from app.infrastructure.main_database import Base
+
+
+user_role = Table(
+    "UserRole",
+    Base.metadata,
+    Column("userId", Integer, ForeignKey("Users.id")),
+    Column("roleId", Integer, ForeignKey("Roles.id")),
+)
+
+
+class UserModel(Base):
+    """User Model"""
+
+    __tablename__ = "Users"
+
+    user_id = Column("id", Integer, primary_key=True, index=True)
+    username = Column("username", String(255), nullable=False)
+    email = Column("email", String(255), nullable=False)
+    first_name = Column("firstname", String(255), nullable=False)
+    last_name = Column("lastname", String(255), nullable=False)
+    preferred_name = Column("preferredname", String(255), nullable=True)
+    password_hash = Column("passwordhash", String(255), nullable=False)
+    is_admin = Column("isAdmin", Boolean, nullable=False)
+    created_at = Column("created_at", Date, nullable=True)
+    updated_at = Column("updated_at", Date, nullable=True)
+
+    roles = relationship("RoleModel", secondary=user_role)
+
+
+class RoleModel(Base):
+    """Role Model"""
+
+    __tablename__ = "Roles"
+
+    role_id = Column("id", Integer, primary_key=True, index=True)
+    role_key = Column("roleKey", String(255), nullable=False)
+    role_name = Column("roleName", String(255), nullable=False)
+    created_at = Column("created_at", Date, nullable=True)
 
 
 class ProjectModel(Base):
