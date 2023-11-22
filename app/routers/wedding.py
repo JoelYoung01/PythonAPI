@@ -13,7 +13,7 @@ from app.services import wedding_service, user_service
 modify_role = "GENERAL_MODIFY"
 
 
-def build_app(oath2_scheme):
+def build_app():
     app = FastAPI()
 
     # Dependency
