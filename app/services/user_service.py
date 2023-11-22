@@ -238,6 +238,6 @@ def remove_user_from_role(db: Session, user_id: int, role_key: str) -> None:
     return db_user
 
 
-def user_has_role(db: Session, user: UserModel, role_key: str) -> bool:
+def user_has_role(user: UserModel, role_key: str) -> bool:
     """Check if a user has a role"""
     return role_key in [role.role_key for role in user.roles]

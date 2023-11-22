@@ -25,6 +25,8 @@ from app.services import project_service, photo_service, user_service
 
 app = FastAPI()
 
+modify_role = "GENERAL_MODIFY"
+
 
 # Dependency
 def get_main_db():
@@ -193,6 +195,12 @@ def update_project(
 ) -> Project:
     """Update a Project by it's ID.
     To set an optional value to null/None, pass "null" or "None" as the value."""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to modify projects"
+        )
+
     return project_service.update_project(db, project_id, updated_project)
 
 
@@ -203,6 +211,12 @@ def remove_project_by_id(
     db: SessionLocal = Depends(get_main_db),
 ) -> Project:
     """Delete a Project by it's ID"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to delete projects"
+        )
+
     return project_service.remove_project_by_id(db, project_id)
 
 
@@ -213,6 +227,12 @@ def create_project(
     db: SessionLocal = Depends(get_main_db),
 ) -> Project:
     """Create a new Project"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to create projects"
+        )
+
     return project_service.create_project(db, project)
 
 
@@ -279,6 +299,12 @@ def create_photo(
     db: SessionLocal = Depends(get_main_db),
 ) -> Photo:
     """Create a new Photo"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to create photos"
+        )
+
     return photo_service.create_photo(db, photo)
 
 
@@ -289,6 +315,12 @@ def create_album(
     db: SessionLocal = Depends(get_main_db),
 ) -> Album:
     """Create a new Album"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to create albums"
+        )
+
     return photo_service.create_album(db, album)
 
 
@@ -300,6 +332,12 @@ def add_photo_to_album(
     db: SessionLocal = Depends(get_main_db),
 ) -> Album:
     """Add a Photo to an Album"""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to modify albums"
+        )
+
     return photo_service.add_photos_to_album(db, album_id, photo_ids)
 
 
@@ -312,6 +350,12 @@ def update_photo(
 ) -> Photo:
     """Update a Photo by it's ID.
     To set an optional value to null/None, pass "null" or "None" as the value."""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to modify photos"
+        )
+
     return photo_service.update_photo(db, photo_id, updated_photo)
 
 
@@ -324,4 +368,10 @@ def update_album(
 ) -> Album:
     """Update a Album by it's ID.
     To set an optional value to null/None, pass "null" or "None" as the value."""
+
+    if not user_service.user_has_role(current_user, modify_role):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to modify albums"
+        )
+
     return photo_service.update_album(db, album_id, updated_album)
