@@ -25,7 +25,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oath2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oath2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
 class Token(BaseModel):

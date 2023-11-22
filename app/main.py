@@ -78,7 +78,7 @@ def health():
 
 # Mount any sub-apps
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-app.mount("/wedding", build_wedding_app(oath2_scheme=user_service.oath2_scheme))
+app.mount("/wedding", build_wedding_app())
 
 #
 # User Routes
